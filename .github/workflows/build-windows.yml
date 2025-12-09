@@ -1,0 +1,43 @@
+name: Build MP4Box (Windows)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build MP4Box for Windows x64
+    runs-on: windows-2022
+
+    steps:
+      - name: Print environment
+        run: |
+          Write-Host "Building MP4Box for Windows x64"
+          Write-Host "Runner: $env:RUNNER_OS"
+
+      - name: Get GPAC source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build MP4Box
+        working-directory: build\msvc14
+        run: |
+          msbuild.exe gpac.sln /maxcpucount /t:Rebuild /p:Configuration="Release - MP4Box_only" /p:Platform=x64 /p:PlatformToolset=v143 /p:WindowsTargetPlatformVersion=10.0
+
+      - name: Verify MP4Box binary
+        run: |
+          Write-Host "MP4Box location:"
+          Get-ChildItem -Path "bin\x64\Release - MP4Box_only" -ErrorAction SilentlyContinue
+          Write-Host ""
+          Write-Host "MP4Box version:"
+          & "bin\x64\Release - MP4Box_only\MP4Box.exe" -version
+
+      - name: Upload MP4Box artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mp4box-windows-x64
+          path: bin\x64\Release - MP4Box_only\MP4Box.exe
+          if-no-files-found: error

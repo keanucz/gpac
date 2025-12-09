@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     name: Build MP4Box for macOS Intel
-    runs-on: macos-13 # Intel-based macOS runner
+    runs-on: macos-15-intel # Intel-based macOS runner
 
     steps:
       - name: Print environment
