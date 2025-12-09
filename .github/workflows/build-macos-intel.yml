@@ -1,0 +1,53 @@
+name: Build MP4Box (macOS Intel)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build MP4Box for macOS Intel
+    runs-on: macos-13 # Intel-based macOS runner
+
+    steps:
+      - name: Print environment
+        run: |
+          echo "Building MP4Box for macOS Intel"
+          echo "Runner: $(uname -a)"
+          echo "Architecture: $(uname -m)"
+
+      - name: Install build dependencies
+        run: |
+          brew install pkg-config
+
+      - name: Get GPAC source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure GPAC
+        run: ./configure --static-bin
+
+      - name: Build GPAC
+        run: make -j$(sysctl -n hw.ncpu)
+
+      - name: Install GPAC
+        run: sudo make install
+
+      - name: Verify MP4Box binary
+        run: |
+          echo "MP4Box location:"
+          which MP4Box || true
+          ls -la bin/gcc/MP4Box || true
+          echo ""
+          echo "MP4Box version:"
+          bin/gcc/MP4Box -version || true
+          echo ""
+          echo "Binary info:"
+          file bin/gcc/MP4Box || true
+
+      - name: Upload MP4Box artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mp4box-macos-intel
+          path: bin/gcc/MP4Box
+          if-no-files-found: error
